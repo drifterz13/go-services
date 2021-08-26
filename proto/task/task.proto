@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+package task;
+
+option go_package = "github.com/drifterz13/go-services/proto/task";
+
+enum Status {
+    ACTIVE = 0;
+    COMPLETED = 1;
+}
+
+enum MemberRole {
+    ASSIGNEE = 0;
+    FOLLOWER = 1;
+}
+
+message Member {
+    string id = 1;
+    MemberRole role = 2;
+}
+
+message Task {
+    string id = 1;
+    string title = 2;
+    Status status = 3;
+    repeated Member members = 4;
+    google.protobuf.Timestamp created_at = 5;
+    google.protobuf.Timestamp updated_at = 6;
+}
+
+message FindTaskRequest {
+    string task_id = 1;
+}
+
+message FindTaskResponse {
+    Task task = 1;
+}
+
+message FindTasksResponse {
+    repeated Task tasks = 1;
+}
+
+message CreateTaskRequest {
+    string title = 1;
+}
+
+message CreateTaskResponse {
+    Task task = 1;
+}
+
+message UpdateTaskRequest {
+    string task_id = 1;
+    string title = 2;
+    Status status = 3;
+    repeated Member members = 4;
+}
+
+message UpdateTaskResponse {
+    Task task = 1;
+}
+
+service TaskService {
+    rpc CreateTask(CreateTaskRequest)
+        returns (CreateTaskResponse);
+    rpc FindTask(FindTaskRequest)
+        returns (FindTaskResponse);
+    rpc FindTasks(google.protobuf.Empty)
+        returns (FindTasksResponse);
+    rpc UpdateTask(UpdateTaskRequest)
+        returns (UpdateTaskResponse);
+}
+
+
+
