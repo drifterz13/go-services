@@ -3,6 +3,9 @@ package main
 import (
 	"log"
 	"net"
+	"os"
+	"os/signal"
+	"syscall"
 
 	pb "github.com/drifterz13/go-services/proto/task"
 	"google.golang.org/grpc"
@@ -24,4 +27,11 @@ func main() {
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v\n", err)
 	}
+
+	sigint := make(chan os.Signal, 1)
+	signal.Notify(sigint, syscall.SIGTERM)
+
+	<-sigint
+	s.GracefulStop()
+	log.Panicln("shutdown gracefully.")
 }
