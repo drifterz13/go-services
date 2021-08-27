@@ -15,6 +15,7 @@ const (
 	port = ":50051"
 )
 
+// XXX: Create Dockerfile and run the service individually.
 func main() {
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
