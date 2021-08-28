@@ -38,9 +38,6 @@ func (r *taskRepository) Find(ctx context.Context) ([]*pb.Task, error) {
 			return nil, err
 		}
 
-		log.Printf("task title: %v", task.Title)
-		log.Printf("task id: %v", task.ID)
-
 		tasks = append(tasks, task.ToProto())
 	}
 

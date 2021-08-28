@@ -1,23 +1,25 @@
 version: "3.8"
 services:
-  task:
-    build:
-      context: ./internal/task
-      dockerfile: Dockerfile
-    image: task-grpc
-    container_name: task
-    command: ["/task-grpc"]
-    depends_on:
-      - postgres
-    ports:
-      - "50051:50051"
-    env_file:
-      - .env
+  # task:
+  #   build:
+  #     context: ./internal/task
+  #     dockerfile: Dockerfile
+  #   image: task-grpc
+  #   container_name: task
+  #   command: ["/task-grpc"]
+  #   depends_on:
+  #     - postgres
+  #   ports:
+  #     - "50051:50051"
+  #   env_file:
+  #     - .env
 
   postgres:
     image: postgres:13.4-alpine
     ports:
       - "5432:5432"
+    volumes: 
+      - ./postgres-data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
