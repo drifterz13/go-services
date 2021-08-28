@@ -1,2 +1,4 @@
 *.session.sql
 settings.json
+
+.env

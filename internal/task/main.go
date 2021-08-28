@@ -15,13 +15,30 @@ import (
 	"github.com/jackc/pgx/v4"
 )
 
-const (
+var (
 	port = ":50051"
 )
 
 func main() {
-	setupDB()
+	// Setup DB
+	var (
+		dbhost   = os.Getenv("POSTGRES_HOST")
+		dbport   = os.Getenv("POSTGRES_PORT")
+		user     = os.Getenv("POSTGRES_USER")
+		password = os.Getenv("POSTGRES_PASSWORD")
+		dbname   = os.Getenv("POSTGRES_DB")
+	)
 
+	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", user, password, dbhost, dbport, dbname)
+	conn, err := pgx.Connect(context.Background(), dbURL)
+	if err != nil {
+		log.Fatalf("Unable to connect to database: %v\n", err)
+	}
+	defer conn.Close(context.Background())
+
+	log.Println("connected to the database.")
+
+	// Setup gRPC
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v\n", err)
@@ -39,25 +56,5 @@ func main() {
 
 	<-sigint
 	s.GracefulStop()
-	log.Panicln("shutdown gracefully.")
-}
-
-var (
-	dbport   = 5432
-	user     = os.Getenv("POSTGRES_USER")
-	password = os.Getenv("POSTGRES_PASSWORD")
-	dbname   = os.Getenv("POSTGRES_DB")
-)
-
-func setupDB() {
-	databaseURL := fmt.Sprintf("postgres://%s:%s@localhost:%d/%s", user, password, dbport, dbname)
-	log.Printf("database url: %v\n", databaseURL)
-
-	conn, err := pgx.Connect(context.Background(), databaseURL)
-	if err != nil {
-		log.Fatalf("Unable to connect to database: %v\n", err)
-	}
-	defer conn.Close(context.Background())
-
-	log.Println("connected to postgresql database.")
+	log.Println("shutdown gracefully.")
 }
