@@ -31,6 +31,10 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	if _, err := taskClient.CreateTask(ctx, &pb.CreateTaskRequest{Title: "Learn Docker"}); err != nil {
+		log.Fatalf("cannot create a task: %v\n", err)
+	}
+
 	tasks, err := taskClient.FindTasks(ctx, &emptypb.Empty{})
 	defer close()
 

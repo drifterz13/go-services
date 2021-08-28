@@ -2,31 +2,26 @@ package main
 
 import (
 	"context"
-	"fmt"
 
 	pb "github.com/drifterz13/go-services/proto/task"
-	"github.com/google/uuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type taskService struct {
 	pb.UnimplementedTaskServiceServer
+	repo TaskRepository
+}
+
+func NewTaskService(repo TaskRepository) pb.TaskServiceServer {
+	return &taskService{repo: repo}
 }
 
 func (s *taskService) FindTasks(ctx context.Context, in *emptypb.Empty) (*pb.FindTasksResponse, error) {
-	var tasks []*pb.Task
-	for _, title := range []string{"task1", "task2"} {
-		task := &pb.Task{
-			Id:        uuid.NewString(),
-			Title:     title,
-			Status:    pb.Status_ACTIVE,
-			Members:   []*pb.Member{},
-			CreatedAt: timestamppb.Now(),
-			UpdatedAt: timestamppb.Now(),
-		}
-
-		tasks = append(tasks, task)
+	tasks, err := s.repo.Find(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
 	return &pb.FindTasksResponse{Tasks: tasks}, nil
@@ -37,18 +32,12 @@ func (s *taskService) FindTask(ctx context.Context, in *pb.FindTaskRequest) (*pb
 }
 
 func (s *taskService) CreateTask(ctx context.Context, in *pb.CreateTaskRequest) (*pb.CreateTaskResponse, error) {
-	fmt.Printf("debug: task title is: %v\n", in.GetTitle())
-
-	task := &pb.Task{
-		Id:        uuid.NewString(),
-		Title:     in.GetTitle(),
-		Status:    pb.Status_ACTIVE,
-		Members:   []*pb.Member{},
-		CreatedAt: timestamppb.Now(),
-		UpdatedAt: timestamppb.Now(),
+	err := s.repo.Create(context.Background(), in.Title)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
-	return &pb.CreateTaskResponse{Task: task}, nil
+	return &pb.CreateTaskResponse{}, nil
 }
 
 func (s *taskService) UpdateTask(ctx context.Context, in *pb.UpdateTaskRequest) (*pb.UpdateTaskResponse, error) {

@@ -1,8 +1,6 @@
 package main
 
 import (
-	"context"
-	"fmt"
 	"log"
 	"net"
 	"os"
@@ -11,8 +9,6 @@ import (
 
 	pb "github.com/drifterz13/go-services/proto/task"
 	"google.golang.org/grpc"
-
-	"github.com/jackc/pgx/v4"
 )
 
 var (
@@ -20,23 +16,12 @@ var (
 )
 
 func main() {
-	// Setup DB
-	var (
-		dbhost   = os.Getenv("POSTGRES_HOST")
-		dbport   = os.Getenv("POSTGRES_PORT")
-		user     = os.Getenv("POSTGRES_USER")
-		password = os.Getenv("POSTGRES_PASSWORD")
-		dbname   = os.Getenv("POSTGRES_DB")
-	)
-
-	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", user, password, dbhost, dbport, dbname)
-	conn, err := pgx.Connect(context.Background(), dbURL)
+	conn, err := registerDB()
 	if err != nil {
-		log.Fatalf("Unable to connect to database: %v\n", err)
+		log.Fatalf("failed to connect to database: %v\n", err)
 	}
-	defer conn.Close(context.Background())
 
-	log.Println("connected to the database.")
+	repo := NewTaskRepository(conn)
 
 	// Setup gRPC
 	lis, err := net.Listen("tcp", port)
@@ -45,7 +30,7 @@ func main() {
 	}
 
 	s := grpc.NewServer()
-	pb.RegisterTaskServiceServer(s, &taskService{})
+	pb.RegisterTaskServiceServer(s, NewTaskService(repo))
 	log.Printf("server listening at: %v\n", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v\n", err)
