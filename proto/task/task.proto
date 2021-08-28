@@ -47,6 +47,8 @@ message CreateTaskRequest {
     string title = 1;
 }
 
+message CreateTaskResponse {}
+
 message UpdateTaskRequest {
     string task_id = 1;
     string title = 2;
@@ -60,7 +62,7 @@ message UpdateTaskResponse {
 
 service TaskService {
     rpc CreateTask(CreateTaskRequest)
-        returns (google.protobuf.Empty);
+        returns (CreateTaskResponse);
     rpc FindTask(FindTaskRequest)
         returns (FindTaskResponse);
     rpc FindTasks(google.protobuf.Empty)
