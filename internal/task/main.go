@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -8,6 +10,7 @@ import (
 	"syscall"
 
 	pb "github.com/drifterz13/go-services/internal/common/genproto/task"
+	"github.com/jackc/pgx/v4"
 	"google.golang.org/grpc"
 )
 
@@ -42,4 +45,21 @@ func main() {
 	<-sigint
 	s.GracefulStop()
 	log.Println("shutdown gracefully.")
+}
+
+func registerDB() (*pgx.Conn, error) {
+	var (
+		dbhost   = os.Getenv("POSTGRES_HOST")
+		dbport   = os.Getenv("POSTGRES_PORT")
+		user     = os.Getenv("POSTGRES_USER")
+		password = os.Getenv("POSTGRES_PASSWORD")
+		dbname   = os.Getenv("POSTGRES_DB")
+	)
+
+	conn, err := pgx.Connect(context.Background(), fmt.Sprintf("postgres://%s:%s@%s:%s/%s", user, password, dbhost, dbport, dbname))
+	if err != nil {
+		return nil, err
+	}
+
+	return conn, err
 }
