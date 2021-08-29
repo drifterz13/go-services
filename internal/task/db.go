@@ -26,7 +26,7 @@ func NewTaskRepository(conn *pgx.Conn) TaskRepository {
 
 func (r *taskRepository) Find(ctx context.Context) ([]*pb.Task, error) {
 	query := `
-		select t.id, t.title, t.status, json_agg(json_build_object('role', tm.role, 'uid', u.id)) as members, t.created_at, t.updated_at
+		select t.id, t.title, t.status, json_agg(json_build_object('role', tm.role, 'id', u.id)) as members, t.created_at, t.updated_at
 		from tasks t
 		inner join task_members tm on tm.task_id = t.id
 		inner join users u on tm.user_id = u.id
