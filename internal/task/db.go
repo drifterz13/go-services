@@ -25,7 +25,14 @@ func NewTaskRepository(conn *pgx.Conn) TaskRepository {
 }
 
 func (r *taskRepository) Find(ctx context.Context) ([]*pb.Task, error) {
-	rows, err := r.conn.Query(ctx, "select * from tasks")
+	query := `
+		select t.id, t.title, t.status, json_agg(json_build_object('role', tm.role, 'uid', u.id)) as members, t.created_at, t.updated_at
+		from tasks t
+		inner join task_members tm on tm.task_id = t.id
+		inner join users u on tm.user_id = u.id
+		group by t.id;
+	`
+	rows, err := r.conn.Query(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +40,7 @@ func (r *taskRepository) Find(ctx context.Context) ([]*pb.Task, error) {
 	var tasks []*pb.Task
 	for rows.Next() {
 		var task models.Task
-		err := rows.Scan(&task.ID, &task.Title, &task.Status, &task.CreatedAt, &task.UpdatedAt)
+		err := rows.Scan(&task.ID, &task.Title, &task.Status, &task.Members, &task.CreatedAt, &task.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
