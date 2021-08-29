@@ -13,21 +13,21 @@ import (
 )
 
 type Server struct {
-	r          *gin.Engine
 	taskClient pbTask.TaskServiceClient
 }
 
-func NewServer(r *gin.Engine, taskClient pbTask.TaskServiceClient) *Server {
-	return &Server{r: r, taskClient: taskClient}
+func NewServer(taskClient pbTask.TaskServiceClient) *Server {
+	return &Server{taskClient: taskClient}
 }
 
 func (s *Server) Serve() {
-	s.registerTaskServer()
-	s.r.Run(":8000")
+	r := gin.Default()
+	s.registerTaskServer(r)
+	r.Run(":8000")
 }
 
-func (s *Server) registerTaskServer() {
-	s.r.GET("/tasks", func(c *gin.Context) {
+func (s *Server) registerTaskServer(r *gin.Engine) {
+	r.GET("/tasks", func(c *gin.Context) {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 
@@ -40,6 +40,25 @@ func (s *Server) registerTaskServer() {
 			"tasks": convertToTasksResponse(resp.Tasks),
 		})
 	})
+
+	r.POST("/tasks", func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
+		var req pbTask.CreateTaskRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid create task payload."})
+
+			return
+		}
+
+		_, err := s.taskClient.CreateTask(ctx, &req)
+		if err != nil {
+			log.Fatalf("error finding tasks: %v\n", err)
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "ok"})
+	})
 }
 
 func convertToTasksResponse(pbTasks []*pbTask.Task) []models.Task {
@@ -47,11 +66,16 @@ func convertToTasksResponse(pbTasks []*pbTask.Task) []models.Task {
 
 	for _, task := range pbTasks {
 		var members []models.Member
-		for _, member := range task.Members {
-			members = append(members, models.Member{
-				ID:   member.Id,
-				Role: int(member.Role),
-			})
+
+		if len(task.Members) > 0 {
+			for _, member := range task.Members {
+				members = append(members, models.Member{
+					ID:   member.Id,
+					Role: int(member.Role),
+				})
+			}
+		} else {
+			members = []models.Member{}
 		}
 
 		tasks = append(tasks, models.Task{
