@@ -6,8 +6,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/drifterz13/go-services/internal/models"
-	pb "github.com/drifterz13/go-services/proto/task"
+	pb "github.com/drifterz13/go-services/internal/common/genproto/task"
+	"github.com/drifterz13/go-services/internal/common/models"
 	"github.com/jackc/pgx/v4"
 )
 

@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	pb "github.com/drifterz13/go-services/proto/task"
+	pb "github.com/drifterz13/go-services/internal/common/genproto/task"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"

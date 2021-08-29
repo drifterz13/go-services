@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	pb "github.com/drifterz13/go-services/proto/task"
+	pb "github.com/drifterz13/go-services/internal/common/genproto/task"
 	"google.golang.org/grpc"
 )
 
