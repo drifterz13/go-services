@@ -18,7 +18,23 @@ message CreateUserRequest {
     string email = 1;
 }
 
+message FindUserRequest {
+    string id = 1;
+}
+
+message FindUserResponse {
+    User user = 1;
+}
+
+message FindUsersResponse {
+    repeated User users = 1;
+}
+
 service UserService {
+    rpc FindUsers(google.protobuf.Empty)
+        returns (FindUsersResponse);
+    rpc FindUser(FindUserRequest)
+        returns (FindUserResponse);
     rpc CreateUser(CreateUserRequest)
         returns (google.protobuf.Empty);
 }
