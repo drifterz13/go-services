@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 
+	"github.com/drifterz13/go-services/internal/common/db"
 	pb "github.com/drifterz13/go-services/internal/common/genproto/task"
 	"github.com/drifterz13/go-services/internal/common/models"
-	"github.com/jackc/pgx/v4"
 )
 
 type TaskRepository interface {
@@ -14,11 +14,11 @@ type TaskRepository interface {
 }
 
 type taskRepository struct {
-	conn *pgx.Conn
+	db *db.PostgresDBRepository
 }
 
-func NewTaskRepository(conn *pgx.Conn) TaskRepository {
-	return &taskRepository{conn}
+func NewTaskRepository(postgresDB *db.PostgresDBRepository) TaskRepository {
+	return &taskRepository{db: postgresDB}
 }
 
 func (r *taskRepository) Find(ctx context.Context) ([]*pb.Task, error) {
@@ -35,7 +35,7 @@ func (r *taskRepository) Find(ctx context.Context) ([]*pb.Task, error) {
 	LEFT JOIN users u ON tm.user_id = u.id
 	GROUP BY t.id;
 	`
-	rows, err := r.conn.Query(ctx, query)
+	rows, err := r.db.Query(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (r *taskRepository) Find(ctx context.Context) ([]*pb.Task, error) {
 }
 
 func (r *taskRepository) Create(ctx context.Context, title string) error {
-	_, err := r.conn.Exec(ctx, "INSERT INTO tasks (title) VALUES ($1)", title)
+	err := r.db.Exec(ctx, "INSERT INTO tasks (title) VALUES ($1)", title)
 
 	return err
 }
