@@ -22,12 +22,10 @@ type Task struct {
 }
 
 func (t *Task) ToProto() *pb.Task {
-	var members []*pb.Member
+	var members []*pb.Member = []*pb.Member{}
 
-	if len(t.Members) > 0 {
-		for _, member := range t.Members {
-			members = append(members, &pb.Member{Id: member.ID, Role: pb.MemberRole(member.Role)})
-		}
+	for _, member := range t.Members {
+		members = append(members, &pb.Member{Id: member.ID, Role: pb.MemberRole(member.Role)})
 	}
 
 	return &pb.Task{

@@ -65,17 +65,13 @@ func convertToTasksResponse(pbTasks []*pbTask.Task) []models.Task {
 	var tasks []models.Task
 
 	for _, task := range pbTasks {
-		var members []models.Member
+		var members []models.Member = []models.Member{}
 
-		if len(task.Members) > 0 {
-			for _, member := range task.Members {
-				members = append(members, models.Member{
-					ID:   member.Id,
-					Role: int(member.Role),
-				})
-			}
-		} else {
-			members = []models.Member{}
+		for _, member := range task.Members {
+			members = append(members, models.Member{
+				ID:   member.Id,
+				Role: int(member.Role),
+			})
 		}
 
 		tasks = append(tasks, models.Task{
