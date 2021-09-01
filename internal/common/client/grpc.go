@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"errors"
 
 	pbTask "github.com/drifterz13/go-services/internal/common/genproto/task"
 	pbUser "github.com/drifterz13/go-services/internal/common/genproto/user"
@@ -9,27 +9,38 @@ import (
 )
 
 const (
-	addr = "localhost:50051"
+	addr1 = "localhost:50051"
+	addr2 = "localhost:50053"
 )
 
-func NewTaskClient() (pbTask.TaskServiceClient, func() error, error) {
-	conn, err := grpc.Dial(addr, grpc.WithInsecure(), grpc.WithBlock())
-	if err != nil {
-		log.Printf("error occur during connect to task gRPC: %v\n", err)
-
-		return nil, func() error { return nil }, err
-	}
-
-	return pbTask.NewTaskServiceClient(conn), conn.Close, nil
+type grpcConn struct {
+	taskConn *grpc.ClientConn
+	userConn *grpc.ClientConn
 }
 
-func NewUserClient() (pbUser.UserServiceClient, func() error, error) {
-	conn, err := grpc.Dial(addr, grpc.WithInsecure(), grpc.WithBlock())
+func NewGrpcConn() (*grpcConn, error) {
+	taskConn, err := grpc.Dial(addr1, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
-		log.Printf("error occur during connect to user gRPC: %v\n", err)
-
-		return nil, func() error { return nil }, err
+		return nil, errors.New("unable to connect to task gRPC")
 	}
 
-	return pbUser.NewUserServiceClient(conn), conn.Close, nil
+	userConn, err := grpc.Dial(addr2, grpc.WithInsecure(), grpc.WithBlock())
+	if err != nil {
+		return nil, errors.New("unable to connect to user gRPC")
+	}
+
+	return &grpcConn{taskConn, userConn}, nil
+}
+
+func (c *grpcConn) GetTaskClient() pbTask.TaskServiceClient {
+	return pbTask.NewTaskServiceClient(c.taskConn)
+}
+
+func (c *grpcConn) GetUserClient() pbUser.UserServiceClient {
+	return pbUser.NewUserServiceClient(c.userConn)
+}
+
+func (c *grpcConn) Close() {
+	c.taskConn.Close()
+	c.userConn.Close()
 }

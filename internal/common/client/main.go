@@ -1,16 +1,12 @@
 package main
 
-import (
-	"log"
-)
-
 func main() {
-	taskClient, close, err := NewTaskClient()
+	conn, err := NewGrpcConn()
 	if err != nil {
-		log.Fatalf("cannot connect to task client: %v\n", err)
+		panic(err)
 	}
-	defer close()
+	defer conn.Close()
 
-	srv := NewServer(taskClient)
+	srv := NewServer(conn.GetTaskClient(), conn.GetUserClient())
 	srv.Serve()
 }

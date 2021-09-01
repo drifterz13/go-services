@@ -18,8 +18,8 @@ type Server struct {
 	userClient pbUser.UserServiceClient
 }
 
-func NewServer(taskClient pbTask.TaskServiceClient) *Server {
-	return &Server{taskClient: taskClient}
+func NewServer(taskClient pbTask.TaskServiceClient, userClient pbUser.UserServiceClient) *Server {
+	return &Server{taskClient, userClient}
 }
 
 func (s *Server) Serve() {
@@ -79,7 +79,7 @@ func (s *Server) registerTaskServer(r *gin.Engine) {
 }
 
 func (s *Server) registerUserServer(r *gin.Engine) {
-	r.GET("users", func(c *gin.Context) {
+	r.GET("/users", func(c *gin.Context) {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 
@@ -96,7 +96,7 @@ func (s *Server) registerUserServer(r *gin.Engine) {
 		c.JSON(http.StatusOK, gin.H{"users": covertToUsersResponse(resp.Users)})
 	})
 
-	r.POST("users", func(c *gin.Context) {
+	r.POST("/users", func(c *gin.Context) {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 
