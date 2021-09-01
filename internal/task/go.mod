@@ -3,7 +3,7 @@ module github.com/drifterz13/go-services/internal/task
 go 1.16
 
 require (
-	github.com/drifterz13/go-services/internal/common v0.0.0
+	github.com/drifterz13/go-services/internal/common v0.0.0-20210830010347-0153a1d358e4
 	golang.org/x/net v0.0.0-20210825183410-e898025ed96a // indirect
 	google.golang.org/genproto v0.0.0-20210828152312-66f60bf46e71 // indirect
 	google.golang.org/grpc v1.40.0

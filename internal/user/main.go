@@ -40,5 +40,4 @@ func main() {
 	<-sigint
 	s.GracefulStop()
 	log.Println("shutdown gracefully.")
-
 }
