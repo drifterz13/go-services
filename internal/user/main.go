@@ -19,8 +19,13 @@ var (
 func main() {
 	log.Println("initialized user service.")
 
-	conn, err := db.RegisterPostgresDB()
-	repo := NewUserRepository(db.NewPostgresDBRepository(conn))
+	client, err := db.RegisterMongoDB()
+	if err != nil {
+		panic(err)
+	}
+
+	collection := client.Database("test").Collection("users")
+	repo := NewUserRepository(collection)
 
 	lis, err := net.Listen("tcp", port)
 	if err != nil {

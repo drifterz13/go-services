@@ -2,9 +2,12 @@ package main
 
 import (
 	"context"
+	"time"
 
-	"github.com/drifterz13/go-services/internal/common/db"
 	"github.com/drifterz13/go-services/internal/common/models"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type UserRepository interface {
@@ -13,23 +16,23 @@ type UserRepository interface {
 }
 
 type userRepository struct {
-	db *db.PostgresDBRepository
+	collection *mongo.Collection
 }
 
-func NewUserRepository(postgresDB *db.PostgresDBRepository) UserRepository {
-	return &userRepository{db: postgresDB}
+func NewUserRepository(c *mongo.Collection) UserRepository {
+	return &userRepository{c}
 }
 
 func (r *userRepository) Find(ctx context.Context) ([]*models.User, error) {
-	rows, err := r.db.Query(ctx, "SELECT * FROM users")
+	cur, err := r.collection.Find(ctx, bson.D{})
 	if err != nil {
 		return nil, err
 	}
 
 	var users []*models.User
-	for rows.Next() {
+	for cur.Next(ctx) {
 		var user models.User
-		if err := rows.Scan(&user.ID, &user.Email, &user.CreatedAt, &user.UpdatedAt); err != nil {
+		if err := cur.Decode(&user); err != nil {
 			return nil, err
 		}
 
@@ -40,7 +43,13 @@ func (r *userRepository) Find(ctx context.Context) ([]*models.User, error) {
 }
 
 func (r *userRepository) Create(ctx context.Context, email string) error {
-	err := r.db.Exec(ctx, "INSERT INTO users (email) VALUES $1", email)
+	user := &models.User{
+		ID:        primitive.NewObjectID(),
+		Email:     email,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+	_, err := r.collection.InsertOne(ctx, &user)
 
 	return err
 }
