@@ -2,9 +2,7 @@ version: "3.8"
 services:
   task:
     build:
-      context: internal
-      args:
-        SERVICE: task
+      context: docker/app
     volumes:
       - ./internal:/internal
     working_dir: /internal/task
@@ -17,9 +15,7 @@ services:
 
   user:
     build:
-      context: internal
-      args:
-        SERVICE: user
+      context: docker/app
     volumes:
       - ./internal:/internal
     working_dir: /internal/user

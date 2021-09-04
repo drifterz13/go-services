@@ -136,7 +136,7 @@ func covertToUsersResponse(pbUsers []*pbUser.User) []models.User {
 }
 
 func convertToTasksResponse(pbTasks []*pbTask.Task) []models.Task {
-	var tasks []models.Task
+	var tasks []models.Task = []models.Task{}
 
 	for _, task := range pbTasks {
 		var members []models.Member = []models.Member{}

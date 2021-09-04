@@ -17,6 +17,8 @@ var (
 )
 
 func main() {
+	log.Println("initialized user service.")
+
 	conn, err := db.RegisterPostgresDB()
 	repo := NewUserRepository(db.NewPostgresDBRepository(conn))
 

@@ -18,6 +18,8 @@ var (
 )
 
 func main() {
+	log.Println("initialized task service.")
+
 	conn, err := db.RegisterPostgresDB()
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v\n", err)
