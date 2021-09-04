@@ -1,7 +1,6 @@
-*.session.sql
 settings.json
 .vscode
 
 .env
-postgres-data/**/*
+postgres/data/**/*
 tmp
