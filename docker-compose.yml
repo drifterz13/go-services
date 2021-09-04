@@ -13,18 +13,18 @@ services:
     depends_on:
       - mongo
 
-  # user:
-  #   build:
-  #     context: docker/app
-  #   volumes:
-  #     - ./internal:/internal
-  #   working_dir: /internal/user
-  #   ports:
-  #     - "50053:50053"
-  #   env_file:
-  #     - .env
-  #   depends_on:
-  #     - postgres
+  user:
+    build:
+      context: docker/app
+    volumes:
+      - ./internal:/internal
+    working_dir: /internal/user
+    ports:
+      - "50053:50053"
+    env_file:
+      - .env
+    depends_on:
+      - mongo
 
   # postgres:
   #   build: 

@@ -112,10 +112,10 @@ func (s *Server) registerUserServer(r *gin.Engine) {
 	})
 }
 
-func MarshalUser(pbUsers []*pbUser.User) []models.User {
-	var users []models.User = []models.User{}
+func MarshalUser(pbUsers []*pbUser.User) []models.UserResponse {
+	var users []models.UserResponse = []models.UserResponse{}
 	for _, user := range pbUsers {
-		users = append(users, models.User{
+		users = append(users, models.UserResponse{
 			ID:        user.Id,
 			Email:     user.Email,
 			CreatedAt: user.CreatedAt.AsTime(),
