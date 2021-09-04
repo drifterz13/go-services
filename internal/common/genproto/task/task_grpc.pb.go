@@ -206,5 +206,5 @@ var TaskService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/task/task.proto",
+	Metadata: "task.proto",
 }
