@@ -48,7 +48,7 @@ func (s *Server) registerTaskServer(r *gin.Engine) {
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"tasks": convertToTasksResponse(resp.Tasks),
+			"tasks": MarshalTask(resp.Tasks),
 		})
 	})
 
@@ -125,7 +125,7 @@ func covertToUsersResponse(pbUsers []*pbUser.User) []models.User {
 	return users
 }
 
-func convertToTasksResponse(pbTasks []*pbTask.Task) []models.Task {
+func MarshalTask(pbTasks []*pbTask.Task) []models.Task {
 	var tasks []models.Task = []models.Task{}
 
 	for _, task := range pbTasks {
