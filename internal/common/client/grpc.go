@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"time"
 
 	pbTask "github.com/drifterz13/go-services/internal/common/genproto/task"
 	pbUser "github.com/drifterz13/go-services/internal/common/genproto/user"
@@ -19,17 +20,17 @@ type grpcConn struct {
 }
 
 func NewGrpcConn() (*grpcConn, error) {
-	taskConn, err := grpc.Dial(addr1, grpc.WithInsecure(), grpc.WithBlock())
+	taskConn, err := grpc.Dial(addr1, grpc.WithTimeout(5*time.Second), grpc.WithInsecure())
 	if err != nil {
 		return nil, errors.New("unable to connect to task gRPC")
 	}
 
-	userConn, err := grpc.Dial(addr2, grpc.WithInsecure(), grpc.WithBlock())
+	userConn, err := grpc.Dial(addr2, grpc.WithTimeout(5*time.Second), grpc.WithInsecure())
 	if err != nil {
 		return nil, errors.New("unable to connect to user gRPC")
 	}
 
-	return &grpcConn{taskConn, userConn}, nil
+	return &grpcConn{taskConn, userConn}, err
 }
 
 func (c *grpcConn) GetTaskClient() pbTask.TaskServiceClient {

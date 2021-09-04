@@ -10,6 +10,8 @@ import (
 	pbUser "github.com/drifterz13/go-services/internal/common/genproto/user"
 	"github.com/drifterz13/go-services/internal/common/models"
 	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -40,10 +42,7 @@ func (s *Server) registerTaskServer(r *gin.Engine) {
 
 		resp, err := s.taskClient.FindTasks(ctx, &emptypb.Empty{})
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"message": "error from finding tasks",
-				"err":     err.Error(),
-			})
+			reponseError(c, err)
 
 			return
 		}
@@ -66,10 +65,7 @@ func (s *Server) registerTaskServer(r *gin.Engine) {
 
 		_, err := s.taskClient.CreateTask(ctx, &req)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"message": "error from creating a task",
-				"err":     err.Error(),
-			})
+			reponseError(c, err)
 
 			return
 		}
@@ -85,10 +81,7 @@ func (s *Server) registerUserServer(r *gin.Engine) {
 
 		resp, err := s.userClient.FindUsers(ctx, &emptypb.Empty{})
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"message": "error from finding users",
-				"err":     err.Error(),
-			})
+			reponseError(c, err)
 
 			return
 		}
@@ -109,10 +102,7 @@ func (s *Server) registerUserServer(r *gin.Engine) {
 
 		_, err := s.userClient.CreateUser(ctx, &req)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"message": "error from creating a user",
-				"err":     err.Error(),
-			})
+			reponseError(c, err)
 
 			return
 		}
@@ -159,4 +149,21 @@ func convertToTasksResponse(pbTasks []*pbTask.Task) []models.Task {
 	}
 
 	return tasks
+}
+
+func reponseError(c *gin.Context, err error) {
+	var msg string
+
+	if e, ok := status.FromError(err); ok {
+		switch e.Code() {
+		case codes.Unavailable:
+			msg = "service is unavailable"
+		default:
+			msg = err.Error()
+		}
+	}
+
+	c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+		"message": msg,
+	})
 }
