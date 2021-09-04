@@ -24,7 +24,7 @@ func main() {
 		panic(err)
 	}
 
-	collection := client.Database("test").Collection("users")
+	collection := client.Database(os.Getenv("MONGO_DB")).Collection("users")
 	repo := NewUserRepository(collection)
 
 	lis, err := net.Listen("tcp", port)

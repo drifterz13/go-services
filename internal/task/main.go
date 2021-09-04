@@ -25,7 +25,7 @@ func main() {
 		panic(err)
 	}
 
-	collection := client.Database("test").Collection("tasks")
+	collection := client.Database(os.Getenv("MONGO_DB")).Collection("tasks")
 	repo := NewTaskRepository(collection)
 
 	// Setup gRPC
