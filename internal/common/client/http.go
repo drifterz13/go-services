@@ -42,13 +42,14 @@ func (s *Server) registerTaskServer(r *gin.Engine) {
 
 		resp, err := s.taskClient.FindTasks(ctx, &emptypb.Empty{})
 		if err != nil {
-			reponseError(c, err)
+			respondError(c, err)
 
 			return
 		}
 
+		tasks := MarshalTask(resp.Tasks)
 		c.JSON(http.StatusOK, gin.H{
-			"tasks": MarshalTask(resp.Tasks),
+			"tasks": tasks,
 		})
 	})
 
@@ -65,7 +66,7 @@ func (s *Server) registerTaskServer(r *gin.Engine) {
 
 		_, err := s.taskClient.CreateTask(ctx, &req)
 		if err != nil {
-			reponseError(c, err)
+			respondError(c, err)
 
 			return
 		}
@@ -81,12 +82,12 @@ func (s *Server) registerUserServer(r *gin.Engine) {
 
 		resp, err := s.userClient.FindUsers(ctx, &emptypb.Empty{})
 		if err != nil {
-			reponseError(c, err)
+			respondError(c, err)
 
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{"users": covertToUsersResponse(resp.Users)})
+		c.JSON(http.StatusOK, gin.H{"users": MarshalUser(resp.Users)})
 	})
 
 	r.POST("/users", func(c *gin.Context) {
@@ -102,7 +103,7 @@ func (s *Server) registerUserServer(r *gin.Engine) {
 
 		_, err := s.userClient.CreateUser(ctx, &req)
 		if err != nil {
-			reponseError(c, err)
+			respondError(c, err)
 
 			return
 		}
@@ -111,7 +112,7 @@ func (s *Server) registerUserServer(r *gin.Engine) {
 	})
 }
 
-func covertToUsersResponse(pbUsers []*pbUser.User) []models.User {
+func MarshalUser(pbUsers []*pbUser.User) []models.User {
 	var users []models.User = []models.User{}
 	for _, user := range pbUsers {
 		users = append(users, models.User{
@@ -125,8 +126,9 @@ func covertToUsersResponse(pbUsers []*pbUser.User) []models.User {
 	return users
 }
 
-func MarshalTask(pbTasks []*pbTask.Task) []models.Task {
-	var tasks []models.Task = []models.Task{}
+func MarshalTask(pbTasks []*pbTask.Task) []models.TaskResponse {
+	log.Printf("pb tasks: %v\n", pbTasks)
+	var tasks []models.TaskResponse = []models.TaskResponse{}
 
 	for _, task := range pbTasks {
 		var members []models.Member = []models.Member{}
@@ -138,7 +140,7 @@ func MarshalTask(pbTasks []*pbTask.Task) []models.Task {
 			})
 		}
 
-		tasks = append(tasks, models.Task{
+		tasks = append(tasks, models.TaskResponse{
 			ID:        task.Id,
 			Title:     task.Title,
 			Status:    int(task.Status),
@@ -151,8 +153,8 @@ func MarshalTask(pbTasks []*pbTask.Task) []models.Task {
 	return tasks
 }
 
-func reponseError(c *gin.Context, err error) {
-	var msg string
+func respondError(c *gin.Context, err error) {
+	var msg string = err.Error()
 
 	if e, ok := status.FromError(err); ok {
 		switch e.Code() {

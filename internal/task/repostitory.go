@@ -2,10 +2,13 @@ package main
 
 import (
 	"context"
+	"time"
 
-	"github.com/drifterz13/go-services/internal/common/db"
 	pb "github.com/drifterz13/go-services/internal/common/genproto/task"
 	"github.com/drifterz13/go-services/internal/common/models"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type TaskRepository interface {
@@ -14,36 +17,23 @@ type TaskRepository interface {
 }
 
 type taskRepository struct {
-	db *db.PostgresDBRepository
+	collection *mongo.Collection
 }
 
-func NewTaskRepository(postgresDB *db.PostgresDBRepository) TaskRepository {
-	return &taskRepository{db: postgresDB}
+func NewTaskRepository(c *mongo.Collection) TaskRepository {
+	return &taskRepository{c}
 }
 
 func (r *taskRepository) Find(ctx context.Context) ([]*pb.Task, error) {
-	query := `
-	SELECT 
-		t.id, 
-		t.title, 
-		t.status, 
-		COALESCE(json_agg(json_build_object('id', u.id, 'role', tm.role)) FILTER (WHERE u.id IS NOT NULL), '[]') AS members, 
-		t.created_at, 
-		t.updated_at
-	FROM tasks t
-	LEFT JOIN task_members tm ON tm.task_id = t.id
-	LEFT JOIN users u ON tm.user_id = u.id
-	GROUP BY t.id;
-	`
-	rows, err := r.db.Query(ctx, query)
+	var tasks []*pb.Task
+	cur, err := r.collection.Find(ctx, bson.D{})
 	if err != nil {
 		return nil, err
 	}
 
-	var tasks []*pb.Task
-	for rows.Next() {
-		var task models.Task
-		err := rows.Scan(&task.ID, &task.Title, &task.Status, &task.Members, &task.CreatedAt, &task.UpdatedAt)
+	for cur.Next(ctx) {
+		var task *models.Task
+		err := cur.Decode(&task)
 		if err != nil {
 			return nil, err
 		}
@@ -51,11 +41,23 @@ func (r *taskRepository) Find(ctx context.Context) ([]*pb.Task, error) {
 		tasks = append(tasks, task.ToProto())
 	}
 
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+
 	return tasks, nil
 }
 
 func (r *taskRepository) Create(ctx context.Context, title string) error {
-	err := r.db.Exec(ctx, "INSERT INTO tasks (title) VALUES ($1)", title)
+	task := models.Task{
+		ID:        primitive.NewObjectID(),
+		Title:     title,
+		Members:   []models.Member{},
+		Status:    0,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+	_, err := r.collection.InsertOne(ctx, &task)
 
 	return err
 }

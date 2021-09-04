@@ -3,4 +3,5 @@ settings.json
 
 .env
 postgres/data/**/*
+mongo/data
 tmp

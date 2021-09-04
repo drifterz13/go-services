@@ -20,12 +20,13 @@ var (
 func main() {
 	log.Println("initialized task service.")
 
-	conn, err := db.RegisterPostgresDB()
+	client, err := db.RegisterMongoDB()
 	if err != nil {
-		log.Fatalf("failed to connect to database: %v\n", err)
+		panic(err)
 	}
 
-	repo := NewTaskRepository(db.NewPostgresDBRepository(conn))
+	collection := client.Database("test").Collection("tasks")
+	repo := NewTaskRepository(collection)
 
 	// Setup gRPC
 	lis, err := net.Listen("tcp", port)
