@@ -15,13 +15,6 @@ type User struct {
 	UpdatedAt time.Time          `json:"updated_at" bson:"updated_at"`
 }
 
-type UserResponse struct {
-	ID        string    `json:"id"`
-	Email     string    `json:"email"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-}
-
 func (u *User) ToProto() *pb.User {
 	return &pb.User{
 		Id:        u.ID.Hex(),

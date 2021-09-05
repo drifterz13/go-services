@@ -9,26 +9,19 @@ import (
 )
 
 type Member struct {
-	ID   string `bson:"id"`
-	Role int    `bson:"role"`
+	ID   string `json:"_id" bson:"_id"`
+	Role int    `json:"role" bson:"role"`
 }
+
+type Members = []Member
 
 type Task struct {
 	ID        primitive.ObjectID `json:"_id" bson:"_id"`
 	Title     string             `json:"title" bson:"title"`
 	Status    int                `json:"status" bson:"status"`
-	Members   []Member           `json:"members" bson:"members"`
+	Members   Members            `json:"members" bson:"members"`
 	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
 	UpdatedAt time.Time          `json:"updated_at" bson:"updated_at"`
-}
-
-type TaskResponse struct {
-	ID        string    `json:"_id"`
-	Title     string    `json:"title"`
-	Status    int       `json:"status"`
-	Members   []Member  `json:"members"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
 }
 
 func (t *Task) ToProto() *pb.Task {
