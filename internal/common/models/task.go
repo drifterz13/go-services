@@ -24,6 +24,12 @@ type Task struct {
 	UpdatedAt time.Time          `json:"updated_at" bson:"updated_at"`
 }
 
+type UpdateTaskRequest struct {
+	ID     string  `json:"_id"`
+	Title  *string `json:"title,omitempty"`
+	Status *int    `json:"status,omitempty"`
+}
+
 func (t *Task) ToProto() *pb.Task {
 	var members []*pb.Member = []*pb.Member{}
 

@@ -9,6 +9,7 @@ import (
 	ce "github.com/drifterz13/go-services/internal/common/error"
 	pbtask "github.com/drifterz13/go-services/internal/common/genproto/task"
 	"github.com/drifterz13/go-services/internal/common/models"
+	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -21,7 +22,7 @@ func NewTaskHander(client pbtask.TaskServiceClient) *TaskHandler {
 	return &TaskHandler{client: client}
 }
 
-func (th *TaskHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+func (th *TaskHandler) GetTasks(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -42,7 +43,7 @@ func (th *TaskHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (th *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -58,7 +59,59 @@ func (th *TaskHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	render.NoContent(w, r)
+}
+
+func (th *TaskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var taskId string
+	if taskId = chi.URLParam(r, "id"); taskId == "" {
+		render.Render(w, r, ce.ErrNotFound)
+		return
+	}
+
+	data := &UpdateTaskRequest{}
+	if err := render.Bind(r, data); err != nil {
+		render.Render(w, r, ce.ErrBadRequest(err))
+		return
+	}
+
+	req := &pbtask.UpdateTaskRequest{TaskId: taskId}
+	if data.Title != nil {
+		req.Title = *data.Title
+	}
+	if data.Status != nil {
+		req.Status = pbtask.Status(*data.Status)
+	}
+
+	_, err := th.client.UpdateTask(ctx, req)
+	if err != nil {
+		render.Render(w, r, ce.ErrNotFound)
+		return
+	}
+
+	render.NoContent(w, r)
+}
+
+func (th *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var taskId string
+	if taskId = chi.URLParam(r, "id"); taskId == "" {
+		render.Render(w, r, ce.ErrNotFound)
+		return
+	}
+
+	_, err := th.client.DeleteTask(ctx, &pbtask.DeleteTaskRequest{TaskId: taskId})
+	if err != nil {
+		render.Render(w, r, ce.ErrBadRequest(err))
+		return
+	}
+
+	render.NoContent(w, r)
 }
 
 type Task struct {
@@ -113,6 +166,19 @@ type CreateTaskRequest struct {
 func (ct *CreateTaskRequest) Bind(r *http.Request) error {
 	if ct.Title == "" {
 		return errors.New("title is required.")
+	}
+
+	return nil
+}
+
+type UpdateTaskRequest struct {
+	Title  *string `json:"title,omitempty"`
+	Status *int    `json:"status,omitempty"`
+}
+
+func (ut *UpdateTaskRequest) Bind(r *http.Request) error {
+	if ut.Title == nil && ut.Status == nil {
+		return errors.New("update fields are not specified.")
 	}
 
 	return nil

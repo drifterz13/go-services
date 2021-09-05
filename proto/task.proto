@@ -60,6 +60,12 @@ message UpdateTaskResponse {
     Task task = 1;
 }
 
+message DeleteTaskRequest {
+    string task_id = 1;
+}
+
+message DeleteTaskResponse {}
+
 service TaskService {
     rpc CreateTask(CreateTaskRequest)
         returns (CreateTaskResponse);
@@ -69,6 +75,8 @@ service TaskService {
         returns (FindTasksResponse);
     rpc UpdateTask(UpdateTaskRequest)
         returns (UpdateTaskResponse);
+    rpc DeleteTask(DeleteTaskRequest) 
+        returns (DeleteTaskResponse);
 }
 
 

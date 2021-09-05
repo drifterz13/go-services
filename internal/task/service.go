@@ -4,6 +4,7 @@ import (
 	"context"
 
 	pb "github.com/drifterz13/go-services/internal/common/genproto/task"
+	"github.com/drifterz13/go-services/internal/common/models"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -32,7 +33,7 @@ func (s *taskService) FindTask(ctx context.Context, in *pb.FindTaskRequest) (*pb
 }
 
 func (s *taskService) CreateTask(ctx context.Context, in *pb.CreateTaskRequest) (*pb.CreateTaskResponse, error) {
-	err := s.repo.Create(context.Background(), in.Title)
+	err := s.repo.Create(ctx, in.Title)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
@@ -41,5 +42,20 @@ func (s *taskService) CreateTask(ctx context.Context, in *pb.CreateTaskRequest) 
 }
 
 func (s *taskService) UpdateTask(ctx context.Context, in *pb.UpdateTaskRequest) (*pb.UpdateTaskResponse, error) {
-	return nil, nil
+	taskStatus := int(in.Status)
+	err := s.repo.UpdateById(ctx, &models.UpdateTaskRequest{ID: in.TaskId, Title: &in.Title, Status: &taskStatus})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
+	return &pb.UpdateTaskResponse{}, nil
+}
+
+func (s *taskService) DeleteTask(ctx context.Context, in *pb.DeleteTaskRequest) (*pb.DeleteTaskResponse, error) {
+	err := s.repo.DeleteById(ctx, in.TaskId)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
+	return &pb.DeleteTaskResponse{}, nil
 }

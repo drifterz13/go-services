@@ -14,6 +14,8 @@ import (
 type TaskRepository interface {
 	Find(ctx context.Context) ([]*pb.Task, error)
 	Create(ctx context.Context, title string) error
+	UpdateById(ctx context.Context, data *models.UpdateTaskRequest) error
+	DeleteById(ctx context.Context, id string) error
 }
 
 type taskRepository struct {
@@ -58,6 +60,43 @@ func (r *taskRepository) Create(ctx context.Context, title string) error {
 		UpdatedAt: time.Now(),
 	}
 	_, err := r.collection.InsertOne(ctx, &task)
+
+	return err
+}
+
+func (r *taskRepository) UpdateById(ctx context.Context, data *models.UpdateTaskRequest) error {
+	objectId, err := primitive.ObjectIDFromHex(data.ID)
+	if err != nil {
+		return err
+	}
+	var updatedFields bson.D
+	if data.Status != nil {
+		updatedFields = append(updatedFields, bson.E{Key: "status", Value: data.Status})
+	}
+	if data.Title != nil {
+		updatedFields = append(updatedFields, bson.E{Key: "title", Value: data.Title})
+	}
+
+	updatedFields = append(updatedFields, bson.E{Key: "updated_at", Value: time.Now()})
+
+	_, err = r.collection.UpdateOne(
+		ctx,
+		bson.M{"_id": objectId},
+		bson.D{
+			{Key: "$set", Value: updatedFields},
+		},
+	)
+
+	return err
+}
+
+func (r *taskRepository) DeleteById(ctx context.Context, id string) error {
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	_, err = r.collection.DeleteOne(ctx, bson.M{"_id": objectId})
 
 	return err
 }

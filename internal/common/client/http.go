@@ -29,8 +29,10 @@ func (s *Server) Serve() {
 	registerMiddleware(r)
 
 	taskHandler := task.NewTaskHander(s.taskClient)
-	r.Get("/tasks", taskHandler.GetAll)
-	r.Post("/tasks", taskHandler.Create)
+	r.Get("/tasks", taskHandler.GetTasks)
+	r.Post("/tasks", taskHandler.CreateTask)
+	r.Patch("/tasks/{id}", taskHandler.UpdateTask)
+	r.Delete("/tasks/{id}", taskHandler.DeleteTask)
 	log.Println("task server has registerd.")
 
 	userHandler := user.NewUserHandler(s.userClient)
