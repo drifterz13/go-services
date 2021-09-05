@@ -53,7 +53,7 @@ func (uh *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	_, err := uh.client.CreateUser(ctx, &pbuser.CreateUserRequest{Email: data.Email})
 	if err != nil {
-		render.Render(w, r, ce.ErrBadRequest(err))
+		render.Render(w, r, ce.ErrInternalServer(err))
 		return
 	}
 

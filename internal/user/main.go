@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -13,7 +14,7 @@ import (
 )
 
 var (
-	port = ":50053"
+	addr = fmt.Sprintf(":%s", os.Getenv("USER_GRPC_PORT"))
 )
 
 func main() {
@@ -27,7 +28,7 @@ func main() {
 	collection := client.Database(os.Getenv("MONGO_DB")).Collection("users")
 	repo := NewUserRepository(collection)
 
-	lis, err := net.Listen("tcp", port)
+	lis, err := net.Listen("tcp", addr)
 	if err != nil {
 		log.Fatalf("failed to listen: %v\n", err)
 	}

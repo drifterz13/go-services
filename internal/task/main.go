@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -14,7 +15,7 @@ import (
 )
 
 var (
-	port = ":50051"
+	addr = fmt.Sprintf(":%s", os.Getenv("TASK_GRPC_PORT"))
 )
 
 func main() {
@@ -29,7 +30,7 @@ func main() {
 	repo := NewTaskRepository(collection)
 
 	// Setup gRPC
-	lis, err := net.Listen("tcp", port)
+	lis, err := net.Listen("tcp", addr)
 	if err != nil {
 		log.Fatalf("failed to listen: %v\n", err)
 	}
