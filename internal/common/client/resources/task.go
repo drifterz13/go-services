@@ -1,8 +1,9 @@
-package task
+package resources
 
 import (
 	"context"
 	"errors"
+	"log"
 	"net/http"
 	"time"
 
@@ -13,19 +14,35 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-type TaskHandler struct {
+type taskResources struct {
 	client pbtask.TaskServiceClient
 }
 
-func NewTaskHander(client pbtask.TaskServiceClient) *TaskHandler {
-	return &TaskHandler{client: client}
+func NewTaskResources(client pbtask.TaskServiceClient) *taskResources {
+	return &taskResources{client}
 }
 
-func (th *TaskHandler) GetTasks(w http.ResponseWriter, r *http.Request) {
+func (rs taskResources) Routes() chi.Router {
+	r := chi.NewRouter()
+
+	r.Get("/", rs.List)
+	r.Post("/", rs.Create)
+
+	r.Route("/{id}", func(r chi.Router) {
+		r.Patch("/", rs.Update)
+		r.Delete("/", rs.Delete)
+	})
+
+	log.Println("registered task resources.")
+
+	return r
+}
+
+func (rs *taskResources) List(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	resp, err := th.client.FindTasks(ctx, &emptypb.Empty{})
+	resp, err := rs.client.FindTasks(ctx, &emptypb.Empty{})
 	if err != nil {
 		render.Render(w, r, ce.ErrInternalServer(err))
 		return
@@ -42,7 +59,7 @@ func (th *TaskHandler) GetTasks(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
+func (rs *taskResources) Create(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -52,7 +69,7 @@ func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := th.client.CreateTask(ctx, &pbtask.CreateTaskRequest{Title: data.Title})
+	_, err := rs.client.CreateTask(ctx, &pbtask.CreateTaskRequest{Title: data.Title})
 	if err != nil {
 		render.Render(w, r, ce.ErrInternalServer(err))
 		return
@@ -61,7 +78,7 @@ func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	render.NoContent(w, r)
 }
 
-func (th *TaskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
+func (rs *taskResources) Update(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -85,7 +102,7 @@ func (th *TaskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
 		req.Status = pbtask.Status(*data.Status)
 	}
 
-	_, err := th.client.UpdateTask(ctx, req)
+	_, err := rs.client.UpdateTask(ctx, req)
 	if err != nil {
 		render.Render(w, r, ce.ErrNotFound)
 		return
@@ -94,7 +111,7 @@ func (th *TaskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
 	render.NoContent(w, r)
 }
 
-func (th *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
+func (rs *taskResources) Delete(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -104,7 +121,7 @@ func (th *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := th.client.DeleteTask(ctx, &pbtask.DeleteTaskRequest{TaskId: taskId})
+	_, err := rs.client.DeleteTask(ctx, &pbtask.DeleteTaskRequest{TaskId: taskId})
 	if err != nil {
 		render.Render(w, r, ce.ErrBadRequest(err))
 		return

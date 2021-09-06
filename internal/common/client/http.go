@@ -1,14 +1,12 @@
 package main
 
 import (
-	"log"
 	"net/http"
 
 	pbtask "github.com/drifterz13/go-services/internal/common/genproto/task"
 	pbuser "github.com/drifterz13/go-services/internal/common/genproto/user"
 
-	"github.com/drifterz13/go-services/internal/common/client/task"
-	"github.com/drifterz13/go-services/internal/common/client/user"
+	"github.com/drifterz13/go-services/internal/common/client/resources"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
@@ -28,17 +26,11 @@ func (s *Server) Serve() {
 	r := chi.NewRouter()
 	registerMiddleware(r)
 
-	taskHandler := task.NewTaskHander(s.taskClient)
-	r.Get("/tasks", taskHandler.GetTasks)
-	r.Post("/tasks", taskHandler.CreateTask)
-	r.Patch("/tasks/{id}", taskHandler.UpdateTask)
-	r.Delete("/tasks/{id}", taskHandler.DeleteTask)
-	log.Println("task server has registerd.")
+	taskResources := resources.NewTaskResources(s.taskClient)
+	r.Mount("/tasks", taskResources.Routes())
 
-	userHandler := user.NewUserHandler(s.userClient)
-	r.Get("/users", userHandler.GetAll)
-	r.Post("/users", userHandler.Create)
-	log.Println("user server has registerd.")
+	userResources := resources.NewUserResources(s.userClient)
+	r.Mount("/users", userResources.Routes())
 
 	http.ListenAndServe(addr, r)
 }
