@@ -4,14 +4,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/drifterz13/go-services/internal/common/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type UserRepository interface {
-	Find(ctx context.Context) ([]*models.User, error)
+	Find(ctx context.Context) ([]*User, error)
 	Create(ctx context.Context, email string) error
 }
 
@@ -23,15 +22,15 @@ func NewUserRepository(c *mongo.Collection) UserRepository {
 	return &userRepository{c}
 }
 
-func (r *userRepository) Find(ctx context.Context) ([]*models.User, error) {
+func (r *userRepository) Find(ctx context.Context) ([]*User, error) {
 	cur, err := r.collection.Find(ctx, bson.D{})
 	if err != nil {
 		return nil, err
 	}
 
-	var users []*models.User
+	var users []*User
 	for cur.Next(ctx) {
-		var user models.User
+		var user User
 		if err := cur.Decode(&user); err != nil {
 			return nil, err
 		}
@@ -43,7 +42,7 @@ func (r *userRepository) Find(ctx context.Context) ([]*models.User, error) {
 }
 
 func (r *userRepository) Create(ctx context.Context, email string) error {
-	user := &models.User{
+	user := &User{
 		ID:        primitive.NewObjectID(),
 		Email:     email,
 		CreatedAt: time.Now(),

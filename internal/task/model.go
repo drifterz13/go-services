@@ -1,11 +1,12 @@
-package models
+package main
 
 import (
 	"time"
 
 	pb "github.com/drifterz13/go-services/internal/common/genproto/task"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Member struct {
@@ -24,12 +25,6 @@ type Task struct {
 	UpdatedAt time.Time          `json:"updated_at" bson:"updated_at"`
 }
 
-type UpdateTaskRequest struct {
-	ID     string  `json:"_id"`
-	Title  *string `json:"title,omitempty"`
-	Status *int    `json:"status,omitempty"`
-}
-
 func (t *Task) ToProto() *pb.Task {
 	var members []*pb.Member = []*pb.Member{}
 
@@ -45,4 +40,10 @@ func (t *Task) ToProto() *pb.Task {
 		CreatedAt: timestamppb.New(t.CreatedAt),
 		UpdatedAt: timestamppb.New(t.UpdatedAt),
 	}
+}
+
+type UpdateTaskData struct {
+	ID     string  `json:"_id"`
+	Title  *string `json:"title,omitempty"`
+	Status *int    `json:"status,omitempty"`
 }

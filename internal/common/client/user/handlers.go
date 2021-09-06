@@ -45,7 +45,7 @@ func (uh *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	data := &CreateUserRequest{}
+	data := &CreateUserData{}
 	if err := render.Bind(r, data); err != nil {
 		render.Render(w, r, ce.ErrBadRequest(err))
 		return
@@ -92,11 +92,11 @@ func (u *UsersResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-type CreateUserRequest struct {
+type CreateUserData struct {
 	Email string `json:"email"`
 }
 
-func (cr *CreateUserRequest) Bind(r *http.Request) error {
+func (cr *CreateUserData) Bind(r *http.Request) error {
 	if cr.Email == "" {
 		return errors.New("email is required.")
 	}

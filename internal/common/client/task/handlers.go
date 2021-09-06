@@ -8,7 +8,6 @@ import (
 
 	ce "github.com/drifterz13/go-services/internal/common/error"
 	pbtask "github.com/drifterz13/go-services/internal/common/genproto/task"
-	"github.com/drifterz13/go-services/internal/common/models"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -47,7 +46,7 @@ func (th *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	data := &CreateTaskRequest{}
+	data := &CreateTaskData{}
 	if err := render.Bind(r, data); err != nil {
 		render.Render(w, r, ce.ErrBadRequest(err))
 		return
@@ -72,7 +71,7 @@ func (th *TaskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := &UpdateTaskRequest{}
+	data := &UpdateTaskData{}
 	if err := render.Bind(r, data); err != nil {
 		render.Render(w, r, ce.ErrBadRequest(err))
 		return
@@ -114,13 +113,20 @@ func (th *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request) {
 	render.NoContent(w, r)
 }
 
+type Member struct {
+	ID   string `json:"_id" bson:"_id"`
+	Role int    `json:"role" bson:"role"`
+}
+
+type Members = []Member
+
 type Task struct {
-	ID        string         `json:"_id"`
-	Title     string         `json:"title"`
-	Status    int            `json:"status"`
-	Members   models.Members `json:"members,omitempty"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
+	ID        string    `json:"_id"`
+	Title     string    `json:"title"`
+	Status    int       `json:"status"`
+	Members   Members   `json:"members,omitempty"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type TaskResponse struct {
@@ -132,10 +138,10 @@ type TasksResponse struct {
 }
 
 func NewTaskFromPb(task *pbtask.Task) Task {
-	var members models.Members
+	var members Members
 
 	for _, member := range task.Members {
-		members = append(members, models.Member{
+		members = append(members, Member{
 			ID:   member.Id,
 			Role: int(member.Role),
 		})
@@ -159,11 +165,11 @@ func (t *TaskResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-type CreateTaskRequest struct {
+type CreateTaskData struct {
 	Title string `json:"title"`
 }
 
-func (ct *CreateTaskRequest) Bind(r *http.Request) error {
+func (ct *CreateTaskData) Bind(r *http.Request) error {
 	if ct.Title == "" {
 		return errors.New("title is required.")
 	}
@@ -171,12 +177,12 @@ func (ct *CreateTaskRequest) Bind(r *http.Request) error {
 	return nil
 }
 
-type UpdateTaskRequest struct {
+type UpdateTaskData struct {
 	Title  *string `json:"title,omitempty"`
 	Status *int    `json:"status,omitempty"`
 }
 
-func (ut *UpdateTaskRequest) Bind(r *http.Request) error {
+func (ut *UpdateTaskData) Bind(r *http.Request) error {
 	if ut.Title == nil && ut.Status == nil {
 		return errors.New("update fields are not specified.")
 	}

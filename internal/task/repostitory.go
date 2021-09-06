@@ -5,7 +5,6 @@ import (
 	"time"
 
 	pb "github.com/drifterz13/go-services/internal/common/genproto/task"
-	"github.com/drifterz13/go-services/internal/common/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -14,7 +13,7 @@ import (
 type TaskRepository interface {
 	Find(ctx context.Context) ([]*pb.Task, error)
 	Create(ctx context.Context, title string) error
-	UpdateById(ctx context.Context, data *models.UpdateTaskRequest) error
+	UpdateById(ctx context.Context, data *UpdateTaskData) error
 	DeleteById(ctx context.Context, id string) error
 }
 
@@ -34,7 +33,7 @@ func (r *taskRepository) Find(ctx context.Context) ([]*pb.Task, error) {
 	}
 
 	for cur.Next(ctx) {
-		var task *models.Task
+		var task Task
 		err := cur.Decode(&task)
 		if err != nil {
 			return nil, err
@@ -51,10 +50,10 @@ func (r *taskRepository) Find(ctx context.Context) ([]*pb.Task, error) {
 }
 
 func (r *taskRepository) Create(ctx context.Context, title string) error {
-	task := models.Task{
+	task := Task{
 		ID:        primitive.NewObjectID(),
 		Title:     title,
-		Members:   []models.Member{},
+		Members:   []Member{},
 		Status:    0,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -64,7 +63,7 @@ func (r *taskRepository) Create(ctx context.Context, title string) error {
 	return err
 }
 
-func (r *taskRepository) UpdateById(ctx context.Context, data *models.UpdateTaskRequest) error {
+func (r *taskRepository) UpdateById(ctx context.Context, data *UpdateTaskData) error {
 	objectId, err := primitive.ObjectIDFromHex(data.ID)
 	if err != nil {
 		return err

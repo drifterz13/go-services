@@ -4,7 +4,6 @@ import (
 	"context"
 
 	pb "github.com/drifterz13/go-services/internal/common/genproto/task"
-	"github.com/drifterz13/go-services/internal/common/models"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -43,7 +42,7 @@ func (s *taskService) CreateTask(ctx context.Context, in *pb.CreateTaskRequest) 
 
 func (s *taskService) UpdateTask(ctx context.Context, in *pb.UpdateTaskRequest) (*pb.UpdateTaskResponse, error) {
 	taskStatus := int(in.Status)
-	err := s.repo.UpdateById(ctx, &models.UpdateTaskRequest{ID: in.TaskId, Title: &in.Title, Status: &taskStatus})
+	err := s.repo.UpdateById(ctx, &UpdateTaskData{ID: in.TaskId, Title: &in.Title, Status: &taskStatus})
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
